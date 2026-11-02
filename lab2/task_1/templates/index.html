@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Лабораторна робота №2</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 20px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+        }
+        .section {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #fff;
+        }
+        .section h3 {
+            font-size: 16px;
+            margin-top: 0;
+            margin-bottom: 10px;
+            border-bottom: 1px dotted #ccc;
+            padding-bottom: 5px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        input[type="number"], input[type="text"], input[type="file"] {
+            padding: 4px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        input[type="number"], input[type="text"] {
+            width: 250px;
+        }
+        button {
+            padding: 5px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #f0f0f0;
+            border: 1px solid #adadad;
+            margin-right: 5px;
+            margin-top: 5px;
+        }
+        button:hover {
+            background-color: #e0e0e0;
+        }
+        .vector-box {
+            background: #fafafa;
+            border: 1px solid #dcdcdc;
+            padding: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 80px;
+            overflow-y: auto;
+            margin-top: 5px;
+            word-break: break-all;
+        }
+        img {
+            border: 1px solid #999;
+            max-width: 120px;
+            max-height: 120px;
+            display: block;
+            margin-top: 8px;
+        }
+        p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Лабораторна робота № 2</h1>
+
+    <div class="section">
+        <h3>1-2. Введення образу та ознаковий вектор</h3>
+        <form id="uploadForm">
+            <label for="imageInput">Графічний файл образу (щоразу можна вибрати наступний образ):</label>
+            <input type="file" id="imageInput" accept="image/*" required>
+            <br>
+            <button type="submit">Завантажити та обчислити ознаки</button>
+        </form>
+
+        <div id="imageContainer"></div>
+
+        <p style="margin-top: 10px;"><strong>Абсолютні ознаки:</strong></p>
+        <div id="absVec" class="vector-box">—</div>
+
+        <p><strong>Нормований вектор ознак:</strong></p>
+        <div id="normVec" class="vector-box">—</div>
+    </div>
+
+    <div class="section">
+        <h3>3. Початкові параметри перцептрона</h3>
+
+        <label>Крок навчання (r):</label>
+        <input type="number" id="lrInput" step="0.01" value="0.1">
+
+        <label>Зсув / Поріг (b), порожньо - випадкове від 0 до 1:</label>
+        <input type="number" id="biasInput" step="0.05" value="">
+
+        <label>Початкові ваги (w_i), порожньо - випадкові від 0 до 1:</label>
+        <input type="text" id="customWInput" value="" placeholder="Одне число або 36 чисел через кому">
+        <br>
+        <button onclick="initPerceptron()">Ініціалізувати ваги та поріг</button>
+
+        <p style="margin-top: 10px;"><strong>Поточні ваги (w):</strong></p>
+        <div id="weightsBox" class="vector-box">—</div>
+        <p>Поріг b: <span id="biasBox">—</span></p>
+    </div>
+
+    <div class="section">
+        <h3>4. Класифікація образу</h3>
+        <button onclick="classifyImage()">Обчислити вихідний вектор</button>
+
+        <p style="margin-top: 10px;">Сума S = ∑(w_i * x_i) - b: <span id="netInput">—</span></p>
+        <p>Вихід перцептрона: <strong id="classResult">—</strong></p>
+    </div>
+
+
+    <div class="section">
+        <h3>5-6. Режим учителя та корекція ваг</h3>
+        <p>Оберіть істинний клас для даного образу:</p>
+        <button onclick="sendFeedback(1)">Підтвердити як Клас A (+1)</button>
+        <button onclick="sendFeedback(-1)">Підтвердити як Клас B (-1)</button>
+
+        <p style="margin-top: 10px;"><strong>Результат корекції:</strong></p>
+        <div id="correctionStatus">—</div>
+
+        <p style="margin-top: 10px;"><strong>Ваги після корекції (w):</strong></p>
+        <div id="weightsAfter" class="vector-box">—</div>
+        <p>Поріг b після корекції: <span id="biasAfter">—</span></p>
+    </div>
+
+    <div class="section">
+        <h3>7. Оцінка збіжності процесу навчання</h3>
+        <p>Кількість показаних образів: <span id="totalSteps">0</span></p>
+        <p>З них із корекцією ваг: <span id="totalCorrections">0</span></p>
+        <p>Образів у навчальній вибірці: <span id="sampleSize">0</span></p>
+        <p>Помилок на вибірці зараз: <span id="sampleErrors">0</span></p>
+
+        <p style="margin-top: 10px;"><strong>Статус збіжності:</strong></p>
+        <div id="convergenceBox">Процес не завершено.</div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('uploadForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('file', document.getElementById('imageInput').files[0]);
+
+        const res = await fetch('/zavantazhyty', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.error) return alert(data.error);
+
+        document.getElementById('imageContainer').innerHTML = `<img src="${data.image_url}">`;
+        document.getElementById('absVec').innerText = JSON.stringify(data.abs_vector);
+        document.getElementById('normVec').innerText = JSON.stringify(data.norm_vector);
+        document.getElementById('weightsBox').innerText = JSON.stringify(data.vahy);
+        document.getElementById('biasBox').innerText = data.porih;
+        document.getElementById('netInput').innerText = '—';
+        document.getElementById('classResult').innerText = '—';
+        document.getElementById('correctionStatus').innerText = '—';
+    };
+
+
+    async function initPerceptron() {
+        const krok = document.getElementById('lrInput').value;
+        const porih = document.getElementById('biasInput').value;
+        const vlasni_vahy = document.getElementById('customWInput').value;
+
+        const res = await fetch('/iniciliazatsiya', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ krok, porih, vlasni_vahy })
+        });
+        const data = await res.json();
+        if (data.error) return alert(data.error);
+
+        document.getElementById('weightsBox').innerText = JSON.stringify(data.vahy);
+        document.getElementById('biasBox').innerText = data.porih;
+        document.getElementById('totalSteps').innerText = '0';
+        document.getElementById('totalCorrections').innerText = '0';
+        document.getElementById('sampleSize').innerText = '0';
+        document.getElementById('sampleErrors').innerText = '0';
+        document.getElementById('convergenceBox').innerText = 'Стан скинуто.';
+        document.getElementById('correctionStatus').innerText = '—';
+        alert("Параметри перцептрона ініціалізовано.");
+    }
+
+  
+    async function classifyImage() {
+        const res = await fetch('/klasyfikatsiya', { method: 'POST' });
+        const data = await res.json();
+        if (data.error) return alert(data.error);
+
+        document.getElementById('netInput').innerText = data.s_suma;
+        document.getElementById('classResult').innerText = data.klas_rezultat;
+    }
+
+    async function sendFeedback(tsilovyiKlas) {
+        const res = await fetch('/vchytsel_korrektsiya', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ tsilovyi_klas: tsilovyiKlas })
+        });
+        const data = await res.json();
+        if (data.error) return alert(data.error);
+
+        document.getElementById('netInput').innerText = data.nova_s_suma;
+        document.getElementById('classResult').innerText = data.novyi_klas;
+        document.getElementById('correctionStatus').innerText = data.povidomlennya;
+        document.getElementById('weightsAfter').innerText = JSON.stringify(data.vahy);
+        document.getElementById('biasAfter').innerText = data.porih;
+        document.getElementById('weightsBox').innerText = JSON.stringify(data.vahy);
+        document.getElementById('biasBox').innerText = data.porih;
+
+        document.getElementById('totalSteps').innerText = data.vsego_krokiv;
+        document.getElementById('totalCorrections').innerText = data.kilkist_korektsii;
+        document.getElementById('sampleSize').innerText = data.rozmir_vybirky;
+        document.getElementById('sampleErrors').innerText = data.pomylky_vybirky;
+
+        const convBox = document.getElementById('convergenceBox');
+        if (data.zbizhnist) {
+            convBox.innerHTML = "<strong>Процес збігся. Усі образи вибірки класифікуються правильно.</strong>";
+        } else {
+            convBox.innerText = "Триває процес адаптації ваг...";
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Лабораторна робота — Мережа Хемінга та Хопфілда</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #ffffff; color: #000000; }
+        .container { max-width: 850px; margin: 0 auto; }
+        h1 { font-size: 20px; border-bottom: 1px solid #000; padding-bottom: 5px; margin-bottom: 20px; }
+        .section { border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; background-color: #fff; }
+        .section h3 { font-size: 16px; margin-top: 0; margin-bottom: 10px; border-bottom: 1px dotted #ccc; padding-bottom: 5px; }
+        label { display: block; margin-bottom: 5px; font-size: 14px; }
+        input[type="text"], input[type="file"] { padding: 4px; font-size: 14px; margin-bottom: 10px; }
+        input[type="text"] { width: 250px; }
+        button { padding: 5px 12px; font-size: 14px; cursor: pointer; background-color: #f0f0f0; border: 1px solid #adadad; margin-right: 5px; margin-top: 5px; }
+        button:hover { background-color: #e0e0e0; }
+        .vector-box { background: #fafafa; border: 1px solid #dcdcdc; padding: 6px; font-family: monospace; font-size: 12px; max-height: 120px; overflow-y: auto; margin-top: 5px; word-break: break-all; white-space: pre-wrap; }
+        img { border: 1px solid #999; max-width: 100px; max-height: 100px; display: block; margin-top: 8px; }
+        .klas { display: inline-block; vertical-align: top; margin-right: 20px; margin-bottom: 10px; }
+        table { border-collapse: collapse; font-size: 13px; margin-top: 5px; }
+        th, td { border: 1px solid #ccc; padding: 3px 10px; text-align: center; }
+        td.stan { font-family: monospace; font-size: 11px; text-align: left; word-break: break-all; }
+        p { margin: 5px 0; font-size: 14px; }
+        .net-selector { background: #eef2f7; padding: 10px 15px; border: 1px solid #b0c4de; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 id="mainTitle">Лабораторна робота — Нейронна мережа Хемінга</h1>
+
+    <!-- ВИБІР ТИПУ МЕРЕЖІ -->
+    <div class="section net-selector">
+        <h3>Вибір типу штучної нейронної мережі</h3>
+        <label>
+            <input type="radio" name="netType" value="hamming" checked onchange="zminytyTypMerezhi('hamming')">
+            <strong>ШНМ Хемінга</strong> (класифікація образів)
+        </label>
+        <label style="margin-top: 5px;">
+            <input type="radio" name="netType" value="hopfield" onchange="zminytyTypMerezhi('hopfield')">
+            <strong>ШНМ Хопфілда</strong> (асоціативна пам'ять / відновлення образів)
+        </label>
+    </div>
+
+    <!-- ПУНКТ 1 ТА 2 -->
+    <div class="section">
+        <h3>1-2. Еталонні образи трьох класів та ознакові вектори</h3>
+        <form id="etalonyForm">
+            <div class="klas">
+                <label>Назва класу 1:</label>
+                <input type="text" id="nazva0" value="А">
+                <input type="file" id="file0" accept="image/*" required>
+            </div>
+            <div class="klas">
+                <label>Назва класу 2:</label>
+                <input type="text" id="nazva1" value="Б">
+                <input type="file" id="file1" accept="image/*" required>
+            </div>
+            <div class="klas">
+                <label>Назва класу 3:</label>
+                <input type="text" id="nazva2" value="В">
+                <input type="file" id="file2" accept="image/*" required>
+            </div>
+            <br>
+            <button type="submit">Завантажити та обчислити ознаки</button>
+        </form>
+
+        <div id="etalonyImages"></div>
+
+        <p style="margin-top: 10px;"><strong>Абсолютні ознаки (кількість пікселів символу у блоці):</strong></p>
+        <div id="absVecs" class="vector-box">—</div>
+
+        <p><strong>Нормовані / бінаризовані вектори (-1 або 1):</strong></p>
+        <div id="normVecs" class="vector-box">—</div>
+    </div>
+
+    <!-- ПУНКТ 3 -->
+    <div class="section">
+        <h3 id="weightsHeader">3. Вагові коефіцієнти першого шару</h3>
+        <p id="weightsFormula">w<sub>ik</sub> = x<sub>i</sub><sup>k</sup> / 2, поріг b = n / 2</p>
+        <button onclick="obchyslytyVahy()">Обчислити вагові коефіцієнти</button>
+
+        <p style="margin-top: 10px;"><strong id="weightsTitle">Матриця ваг (рядок — клас, стовпець — ознака):</strong></p>
+        <div id="weightsBox" class="vector-box" style="max-height: 150px;">—</div>
+        <p id="extraParams">Поріг b: <span id="biasBox">—</span>; ε (гальмування): <span id="epsBox">—</span></p>
+    </div>
+
+    <!-- ПУНКТ 4 -->
+    <div class="section">
+        <h3>4. Невідомий образ</h3>
+        <form id="unknownForm">
+            <label for="unknownInput">Графічний файл невідомого образу:</label>
+            <input type="file" id="unknownInput" accept="image/*" required>
+            <br>
+            <button type="submit">Класифікувати / Обробити</button>
+        </form>
+
+        <div id="unknownImage"></div>
+
+        <p style="margin-top: 10px;"><strong>Абсолютні ознаки:</strong></p>
+        <div id="unkAbs" class="vector-box">—</div>
+        <p><strong>Нормований вектор (-1 / 1):</strong></p>
+        <div id="unkNorm" class="vector-box">—</div>
+    </div>
+
+    <!-- ПУНКТ 5 ТА 6 -->
+    <div class="section">
+        <h3>5-6. Результат класифікації та аналіз процесу</h3>
+        <p>Результат: <strong id="classResult">—</strong></p>
+        <p>Кількість ітерацій: <span id="iterCount">—</span></p>
+
+        <div id="hammingResultsContainer">
+            <p style="margin-top: 10px;"><strong>Перший шар (кількість збігів та відстань Хеммінга):</strong></p>
+            <div id="firstLayer">—</div>
+        </div>
+
+        <div id="hopfieldResultsContainer" style="display: none;">
+            <p style="margin-top: 10px;"><strong>Стабільний відновлений стан мережі Хопфілда:</strong></p>
+            <div id="stableStateBox" class="vector-box">—</div>
+            <p id="hopfieldConv">—</p>
+            <p style="margin-top: 10px;"><strong>Збіги з еталонами (з n ознак):</strong></p>
+            <div id="hopfieldMatches">—</div>
+        </div>
+
+        <p style="margin-top: 10px;"><strong id="iterTableTitle">Другий шар (вихід кожного нейрона на кожній ітерації):</strong></p>
+        <div id="iterTable">—</div>
+    </div>
+</div>
+
+<script>
+    let currentNetType = 'hamming';
+
+    async function zminytyTypMerezhi(typ) {
+        currentNetType = typ;
+        await fetch('/vstanovyty_typ_merezhi', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({net_type: typ})
+        });
+
+        if (typ === 'hamming') {
+            document.getElementById('mainTitle').innerText = 'Лабораторна робота — Нейронна мережа Хемінга';
+            document.getElementById('weightsHeader').innerText = '3. Вагові коефіцієнти першого шару';
+            document.getElementById('weightsFormula').innerHTML = 'w<sub>ik</sub> = x<sub>i</sub><sup>k</sup> / 2, поріг b = n / 2';
+            document.getElementById('weightsTitle').innerText = 'Матриця ваг (рядок — клас, стовпець — ознака):';
+            document.getElementById('extraParams').style.display = 'block';
+            document.getElementById('hammingResultsContainer').style.display = 'block';
+            document.getElementById('hopfieldResultsContainer').style.display = 'none';
+            document.getElementById('iterTableTitle').innerText = 'Другий шар (вихід кожного нейрона на кожній ітерації):';
+        } else {
+            document.getElementById('mainTitle').innerText = 'Лабораторна робота — Нейронна мережа Хопфілда';
+            document.getElementById('weightsHeader').innerText = '3. Матриця вагових коефіцієнтів ШНМ Хопфілда';
+            document.getElementById('weightsFormula').innerHTML = 'W<sub>ij</sub> = (1/n) · Σ<sub>k</sub> x<sub>i</sub><sup>k</sup> x<sub>j</sub><sup>k</sup>, W<sub>ii</sub> = 0';
+            document.getElementById('weightsTitle').innerText = 'Симетрична матриця вагів W (n × n):';
+            document.getElementById('extraParams').style.display = 'none';
+            document.getElementById('hammingResultsContainer').style.display = 'none';
+            document.getElementById('hopfieldResultsContainer').style.display = 'block';
+            document.getElementById('iterTableTitle').innerText = 'Процес ітераційного оновлення стану мережі (динаміка):';
+        }
+
+        // Очищення попередніх результатів при зміні мережі
+        for (const id of ['weightsBox', 'firstLayer', 'iterTable', 'biasBox', 'epsBox',
+                          'classResult', 'iterCount', 'stableStateBox', 'hopfieldConv', 'hopfieldMatches']) {
+            document.getElementById(id).innerText = '—';
+        }
+    }
+
+    // 1-2. Завантаження еталонів
+    document.getElementById('etalonyForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        for (let i = 0; i < 3; i++) {
+            formData.append('file' + i, document.getElementById('file' + i).files[0]);
+            formData.append('nazva' + i, document.getElementById('nazva' + i).value);
+        }
+
+        const res = await fetch('/zavantazhyty_etalony', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.error) return alert(data.error);
+
+        let html = '';
+        let absText = '';
+        let normText = '';
+        for (let i = 0; i < 3; i++) {
+            html += `<div class="klas"><strong>${data.nazvy[i]}</strong><img src="${data.kartynky[i]}"></div>`;
+            absText += data.nazvy[i] + ': ' + JSON.stringify(data.abs_vectors[i]) + '\n\n';
+            normText += data.nazvy[i] + ': ' + JSON.stringify(data.norm_vectors[i]) + '\n\n';
+        }
+        document.getElementById('etalonyImages').innerHTML = html;
+        document.getElementById('absVecs').innerText = absText;
+        document.getElementById('normVecs').innerText = normText;
+        // ваги більше недійсні (сервер їх скинув)
+        document.getElementById('weightsBox').innerText = '—';
+        document.getElementById('biasBox').innerText = '—';
+        document.getElementById('epsBox').innerText = '—';
+    };
+
+    // 3. Вагові коефіцієнти
+    async function obchyslytyVahy() {
+        const res = await fetch('/obchyslyty_vahy', { method: 'POST' });
+        const data = await res.json();
+        if (data.error) return alert(data.error);
+
+        if (data.net_type === 'hamming') {
+            let text = '';
+            for (let k = 0; k < data.m; k++) {
+                text += 'Клас ' + (k + 1) + ': ' + JSON.stringify(data.vahy[k]) + '\n\n';
+            }
+            document.getElementById('weightsBox').innerText = text;
+            document.getElementById('biasBox').innerText = data.porih[0];
+            document.getElementById('epsBox').innerText = data.epsilon;
+        } else {
+            // Хопфілд: матриця W, кожен рядок — в один рядок тексту
+            const text = data.vahy.map((r, i) => 'w' + i + ': [' + r.join(', ') + ']').join('\n');
+            document.getElementById('weightsBox').innerText = text;
+            document.getElementById('weightsBox').style.maxHeight = '250px';
+        }
+    }
+
+    // 4-6. Невідомий образ і класифікація
+    document.getElementById('unknownForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('file', document.getElementById('unknownInput').files[0]);
+
+        const res = await fetch('/klasyfikatsiya', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.error) return alert(data.error);
+
+        document.getElementById('unknownImage').innerHTML = `<img src="${data.image_url}">`;
+        document.getElementById('unkAbs').innerText = JSON.stringify(data.abs_vector);
+        document.getElementById('unkNorm').innerText = JSON.stringify(data.norm_vector);
+
+        document.getElementById('classResult').innerText = data.klas_rezultat;
+        document.getElementById('iterCount').innerText = data.kilkist_iteratsii;
+
+        if (data.net_type === 'hamming') {
+            let t1 = '<table><tr><th>Клас</th><th>Збігів (y)</th><th>Відстань Хеммінга</th></tr>';
+            for (let k = 0; k < data.nazvy.length; k++) {
+                t1 += `<tr><td>${data.nazvy[k]}</td><td>${data.pershyi_shar[k]}</td><td>${data.vidstani[k]}</td></tr>`;
+            }
+            document.getElementById('firstLayer').innerHTML = t1 + '</table>';
+
+            let t2 = '<table><tr><th>t</th>';
+            for (const nazva of data.nazvy) t2 += `<th>${nazva}</th>`;
+            t2 += '</tr>';
+            data.iteratsii.forEach((ryadok, t) => {
+                t2 += `<tr><td>${t}</td>` + ryadok.map(v => `<td>${v}</td>`).join('') + '</tr>';
+            });
+            document.getElementById('iterTable').innerHTML = t2 + '</table>';
+        } else {
+            document.getElementById('stableStateBox').innerText = JSON.stringify(data.stabilny_stan);
+            document.getElementById('hopfieldConv').innerText = data.zbiglasya
+                ? 'Мережа стабілізувалась.'
+                : 'Мережа не стабілізувалась за максимальну кількість ітерацій.';
+
+            let t1 = '<table><tr><th>Клас</th><th>Збігів входу з еталоном</th><th>Збігів стабільного стану з еталоном</th></tr>';
+            for (let k = 0; k < data.nazvy.length; k++) {
+                t1 += `<tr><td>${data.nazvy[k]}</td><td>${data.zbigi_vhid[k]} / ${data.n}</td><td>${data.zbigi_stan[k]} / ${data.n}</td></tr>`;
+            }
+            document.getElementById('hopfieldMatches').innerHTML = t1 + '</table>';
+
+            let t2 = '<table><tr><th>t</th><th>Стан вектора (ознаки)</th></tr>';
+            data.iteratsii.forEach((ryadok, t) => {
+                t2 += `<tr><td>${t}</td><td class="stan">${JSON.stringify(ryadok)}</td></tr>`;
+            });
+            document.getElementById('iterTable').innerHTML = t2 + '</table>';
+        }
+    };
+</script>
+
+</body>
+</html>

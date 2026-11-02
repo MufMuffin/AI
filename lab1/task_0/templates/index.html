@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лабораторна 1</title>
+    <style>
+        :root {
+            --primary-color: #6C5CE7;     
+            --primary-hover: #5b4bc4;    
+            --bg-color: #f3f0fc;           
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #dcd6f7;     
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            max-width: 700px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 0;
+            box-shadow: 0 10px 30px rgba(108, 92, 231, 0.08);
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 30px;
+            color: #1a103c;
+            letter-spacing: -0.5px;
+        }
+
+        .upload-box {
+            border: 2px solid #b4aee8;
+            padding: 30px 20px;
+            border-radius: 0;
+            margin-bottom: 25px;
+            background-color: #faf9fe;
+            transition: all 0.3s ease;
+        }
+
+        .upload-box:hover {
+            border-color: var(--primary-color);
+        }
+
+        .upload-box p {
+            margin: 0 0 20px 0;
+            font-size: 1.15rem;
+            color: #4a4366;
+            font-weight: 500;
+        }
+
+        /* Стилізація кнопки без заокруглень */
+        input[type="file"] {
+            font-size: 0.95rem;
+            color: #716b85;
+            cursor: pointer;
+        }
+        
+        input[type="file"]::file-selector-button {
+            content: "Обрати файл";
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 0;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 15px;
+            transition: background-color 0.2s ease;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 0;
+            font-size: 1rem;
+            margin-top: 20px;
+            text-align: left;
+            display: inline-block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .info {
+            background-color: #f3f0fc;
+            color: #4c3f91;
+        }
+
+        .error {
+            background-color: #ffebee;
+            color: #b71c1c;
+            border-left: 4px solid #d32f2f;
+        }
+
+        .preview-container {
+            margin-top: 30px;
+            padding: 20px;
+            border: 2px solid #e1dbf7;
+            background-color: #faf9fe;
+            border-radius: 0;
+            text-align: left;
+        }
+
+        .preview-title {
+            font-weight: 600;
+            color: #4c3f91;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .preview-img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            border-radius: 0;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Лабораторна робота №1</h1>
+        
+        <div class="upload-box">
+            <form method="POST" enctype="multipart/form-data">
+                <p>Оберіть файл зображення</p>
+                <input type="file" id="fileInput" name="file" accept=".jpg,.jpeg,.png,.webp" onchange="this.form.submit()">
+            </form>
+        </div>
+
+        {% if error %}
+            <div class="alert error">
+                <strong>Помилка:</strong> {{ error }}
+            </div>
+        {% elif img_data %}
+            <div class="preview-container">
+                <div class="preview-title">Завантажене зображення:</div>
+                <img class="preview-img" src="data:image/jpeg;base64,{{ img_data }}" alt="Завантажене зображення">
+            </div>
+
+        {% endif %}
+    </div>
+</body>
+</html>

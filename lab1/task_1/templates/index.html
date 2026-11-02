@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лабораторна 1 — Завдання 1</title>
+    <style>
+        :root {
+            --primary-color: #6C5CE7;     
+            --primary-hover: #5b4bc4;    
+            --bg-color: #f3f0fc;           
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #dcd6f7;     
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #1a103c;
+            text-align: center;
+        }
+
+        .upload-box {
+            border: 2px solid var(--primary-color);
+            padding: 25px 20px;
+            border-radius: 0;
+            margin-bottom: 25px;
+            background-color: #faf9fe;
+            text-align: center;
+        }
+
+        .upload-box p {
+            margin: 0 0 15px 0;
+            font-size: 1.1rem;
+            color: #4a4366;
+            font-weight: 500;
+        }
+
+        .hidden-input {
+            display: none;
+        }
+
+        .custom-file-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 0;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-block;
+            transition: background-color 0.2s;
+        }
+
+        .custom-file-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .images-row {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .image-card {
+            flex: 1;
+            min-width: 220px;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            background-color: #faf9fe;
+            text-align: center;
+        }
+
+        .section-title {
+            font-weight: 600;
+            color: #4c3f91;
+            margin-bottom: 12px;
+            font-size: 1.05rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        .preview-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+        }
+
+        .vectors-section {
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            background-color: #faf9fe;
+        }
+
+        .vector-box {
+            background-color: #ffffff;
+            border: 1px solid #dcd6f7;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            word-break: break-all;
+            max-height: 100px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 0;
+            font-size: 0.95rem;
+            margin-top: 15px;
+        }
+
+        .info {
+            background-color: #f3f0fc;
+            color: #4c3f91;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .error {
+            background-color: #ffebee;
+            color: #b71c1c;
+            border-left: 4px solid #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Лабораторна робота №1 — Завдання 1</h1>
+        
+        <div class="upload-box">
+            <form method="POST" enctype="multipart/form-data">
+                <p>Оберіть файл зображення (.bmp, .png, .jpg)</p>
+                <input type="file" id="fileInput" name="file" class="hidden-input" accept=".bmp,.png,.jpg,.jpeg,.webp" onchange="this.form.submit()">
+                <label for="fileInput" class="custom-file-btn">Обрати файл</label>
+            </form>
+        </div>
+
+        {% if error %}
+            <div class="alert error">
+                <strong>Помилка:</strong> {{ error }}
+            </div>
+        {% elif original_data %}
+            <div class="images-row">
+                <div class="image-card">
+                    <div class="section-title">Оригінальне зображення</div>
+                    <img class="preview-img" src="data:image/png;base64,{{ original_data }}" alt="Оригінал">
+                </div>
+
+                <div class="image-card">
+                    <div class="section-title">Оброблений образ із сіткою (5х5)</div>
+                    <img class="preview-img" src="data:image/png;base64,{{ grid_data }}" alt="З сіткою">
+                </div>
+            </div>
+
+            <div class="vectors-section">
+                <div class="section-title">Абсолютний вектор ознак (25 координат)</div>
+                <div class="vector-box">
+                    X = ({{ abs_vector | join(', ') }})
+                </div>
+
+                <div class="section-title">Нормований вектор ознак</div>
+                <div class="vector-box">
+                    X_norm = ({{ norm_vector | join(', ') }})
+                </div>
+            </div>
+        {% else %}
+            <div class="alert info">
+                Будь ласка, завантажте графічний файл для побудови векторів ознак.
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

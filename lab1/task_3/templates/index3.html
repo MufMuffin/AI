@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Лабораторна 1 -Завдання 3
+    </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .vector-box {
+            font-size: 0.75rem;
+            max-height: 95px;
+            overflow-y: auto;
+            word-break: break-all;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container py-4">
+    <h2 class="mb-4 text-center">Лабораторна 1 -Завдання 3</h2>
+
+    <form method="POST" enctype="multipart/form-data" class="card card-body shadow-sm mb-4">
+        <p class="text-muted small">Оберіть від 1 до 10 зображень для кожного класу</p>
+        
+        <div class="row g-3 mb-4">
+            {% for cls in classes %}
+            <div class="col-md-4">
+                <div class="border p-3 rounded bg-white h-100">
+                    <label class="form-label fw-bold text-primary">{{ cls }}</label>
+                    <input type="file" name="train_{{ cls }}" class="form-control" accept="image/*" multiple required>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <h5 class="card-title mb-3">2. Невідомий образ для розпізнавання</h5>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <input type="file" name="unknown" class="form-control" accept="image/*" required>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg w-100">Навчити</button>
+    </form>
+
+    {% if results %}
+    <div class="card card-body shadow-sm mb-4">
+        <h4 class="card-title text-success">Результати кластерного аналізу</h4>
+        <hr>
+
+        <h5 class="mb-3">1. Геометричні центри та навчальні вибірки:</h5>
+        
+        {% for cls, stats in results.cluster_stats.items() %}
+        <div class="card mb-4 border-primary">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0">{{ cls }} (Завантажено об'єктів: {{ stats.count }})</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong class="text-dark">Геометричний центр кластера:</strong>
+                    <div class="p-2 border rounded vector-box font-monospace bg-light text-primary mt-1">
+                        {{ stats.center_full }}
+                    </div>
+                </div>
+
+                <h6 class="text-muted">Об'єкти навчальної послідовності:</h6>
+                <div class="row g-2">
+                    {% for item in stats['items'] %}
+                    <div class="col-md-4 col-lg-3">
+                        <div class="border p-2 rounded bg-white text-center h-100">
+                            <img src="{{ item.grid_b64 }}" class="img-thumbnail mb-2" style="max-height: 90px; object-fit: contain;">
+                            
+                            <div class="text-start">
+                                <span class="fw-bold d-block" style="font-size: 0.7rem;">Абсолютний вектор (25):</span>
+                                <div class="p-1 border rounded vector-box mb-1 font-monospace">{{ item.abs_full }}</div>
+                                
+                                <span class="fw-bold d-block" style="font-size: 0.7rem;">Нормований вектор (25):</span>
+                                <div class="p-1 border rounded vector-box font-monospace">{{ item.norm_full }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <h5 class="mt-4">2. Невідомий образ:</h5>
+        <div class="row mb-4">
+            <div class="col-md-5">
+                <div class="border p-3 rounded bg-white">
+                    <div class="text-center">
+                        <img src="{{ results.unknown.grid_b64 }}" class="img-thumbnail mb-3" style="max-height: 140px; object-fit: contain;">
+                    </div>
+                    
+                    <span class="fw-bold d-block">Абсолютний вектор :</span>
+                    <div class="p-2 border rounded vector-box mb-2 font-monospace">{{ results.unknown.abs_full }}</div>
+
+                    <span class="fw-bold d-block">Нормований вектор :</span>
+                    <div class="p-2 border rounded vector-box font-monospace">{{ results.unknown.norm_full }}</div>
+                </div>
+            </div>
+        </div>
+
+        <h5>3. Евклідова відстань у декартовій системі координат:</h5>
+        <ul class="list-group mb-4">
+            {% for cls, dist in results.distances.items() %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>Відстань до центру <strong>{{ cls }}</strong>:</span>
+                <span class="badge bg-primary fs-6">{{ dist }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <div class="alert alert-success mb-0">
+            <h4 class="alert-heading">Висновок класифікації за методом еталона:</h4>
+            <p class="mb-0 fs-5">Невідомий образ віднесено до класу <strong>{{ results.predicted_class }}</strong> (Мінімальна Евклідова відстань = {{ results.min_dist }}).</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+</body>
+</html>
